@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Maverick Steele Campaign - Snake Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    header {
+      background-color: #002244;
+      color: white;
+      padding: 35px 0;
+      text-align: center;
+    }
+    nav {
+      background-color: #001122;
+      padding: 10px 0;
+      text-align: center;
+    }
+    nav a {
+      color: white;
+      margin: 0 15px;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-weight: bold;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    nav a:hover {
+      background-color: #003366;
+      color: #ffcc00;
+    }
+    section {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    footer {
+      background-color: #002244;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      margin-top: 40px;
+    }
+    #canvas {
+      background: black;
+      display: block;
+      margin: 20px auto;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    #score {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button {
+      background-color: #002244;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #004488;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Maverick Steele for President 2024</h1>
+  <p>“True strength. Real change.”</p>
+</header>
+
+<nav>
+    <a href="index.html">⬅️ Back to Homepage</a>
+  <a href="Index2.html">In the News</a>
+</nav>
+
+<section>
+  <h2>Take a Break: Play Snake!</h2>
+  <canvas id="canvas" width="800" height="800"></canvas>
+  <div id="score">Score: 0</div>
+  <button id="startBtn">Start Game</button>
+  <p style="font-size: 0.85em; margin-top: 20px; color: #666;">
+    Snake game adapted from <a href="https://github.com/patorjk/JavaScript-Snake" target="_blank" rel="noopener" style="color:#002244;">patorjk's JavaScript Snake</a>.
+  </p>
+</section>
+
+<footer>
+  <p>&copy; 2024 Maverick Steele for President. All rights reserved.</p>
+</footer>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const box = 20;
+  const canvasSize = 800;
+
+  let snake = [];
+  let food = {};
+  let score = 0;
+  let direction = null;
+  let gameInterval = null;
+
+  function resetGame() {
+    snake = [{ x: 9 * box, y: 10 * box }];
+    placeFood();
+    score = 0;
+    direction = null;
+    document.getElementById('score').innerText = 'Score: 0';
+  }
+
+  function placeFood() {
+    food = {
+      x: Math.floor(Math.random() * (canvasSize / box)) * box,
+      y: Math.floor(Math.random() * (canvasSize / box)) * box
+    };
+  }
+
+  function draw() {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+    // Draw snake
+    for (let i = 0; i < snake.length; i++) {
+      ctx.fillStyle = i === 0 ? '#ffcc00' : '#00aced';
+      ctx.fillRect(snake[i].x, snake[i].y, box, box);
+      ctx.strokeStyle = '#001122';
+      ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+    }
+
+    // Draw food
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(food.x, food.y, box, box);
+  }
+
+  function collision(head, body) {
+    for (let i = 0; i < body.length; i++) {
+      if (head.x === body[i].x && head.y === body[i].y) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function update() {
+    let headX = snake[0].x;
+    let headY = snake[0].y;
+
+    if (direction === 'LEFT') headX -= box;
+    else if (direction === 'UP') headY -= box;
+    else if (direction === 'RIGHT') headX += box;
+    else if (direction === 'DOWN') headY += box;
+
+    // Check for wall collision
+    if (headX < 0 || headX > canvasSize - box || headY < 0 || headY > canvasSize - box) {
+      endGame();
+      return;
+    }
+
+    let newHead = { x: headX, y: headY };
+
+    // Check collision with body (ignore head)
+    if (collision(newHead, snake.slice(1))) {
+      endGame();
+      return;
+    }
+
+    snake.unshift(newHead);
+
+    // Check if food eaten
+    if (headX === food.x && headY === food.y) {
+      score++;
+      document.getElementById('score').innerText = 'Score: ' + score;
+      placeFood();
+    } else {
+      snake.pop();
+    }
+
+    draw();
+  }
+
+  function endGame() {
+    clearInterval(gameInterval);
+    alert('Game Over! Your score was: ' + score);
+  }
+
+  function setDirection(event) {
+    const key = event.keyCode;
+    if (key === 37 && direction !== 'RIGHT') direction = 'LEFT';
+    else if (key === 38 && direction !== 'DOWN') direction = 'UP';
+    else if (key === 39 && direction !== 'LEFT') direction = 'RIGHT';
+    else if (key === 40 && direction !== 'UP') direction = 'DOWN';
+  }
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    resetGame();
+    clearInterval(gameInterval);
+    gameInterval = setInterval(update, 100);
+  });
+
+  document.addEventListener('keydown', setDirection);
+
+  // Initial draw
+  resetGame();
+  draw();
+</script>
+
+</body>
+</html>
