@@ -108,6 +108,7 @@
 </footer>
 
 <script>
+    let gameRunning = false;
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
   const box = 20;
@@ -199,6 +200,7 @@
 
   function endGame() {
     clearInterval(gameInterval);
+    gameRunning = false;
     alert('Game Over! Your score was: ' + score);
   }
 
@@ -214,10 +216,16 @@
     resetGame();
     clearInterval(gameInterval);
     gameInterval = setInterval(update, 100);
+    gameRunning = true;
   });
 
-  document.addEventListener('keydown', setDirection);
-
+  document.addEventListener('keydown', function(event) {
+  const keysToPrevent = [37, 38, 39, 40];
+  if (gameRunning && keysToPrevent.includes(event.keyCode)) {
+    event.preventDefault();
+    setDirection(event);
+  }
+});
   // Initial draw
   resetGame();
   draw();
